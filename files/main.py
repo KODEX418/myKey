@@ -164,7 +164,7 @@ class MainWindow(QMainWindow):
             self.isLoggedState = False
             self.user_session = None
 
-    def delete_user(self): # удаление пользователя (CTRL+DEL)
+    def delete_user(self): # удаление пользователя (CTRL+F8)
         if not self.isLogged():
             current_user = self.greet_widget.user_comboBox.currentText()
             passw_auth = PasswordAuth(self, self.usermanager, current_user, f"Confirm deletion of User: {current_user}")

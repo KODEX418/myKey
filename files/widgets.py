@@ -93,13 +93,14 @@ class GreetWidget(QWidget, GreetWidgetUi):
                 self.add_digit(event.text())
             elif event.key() == QtCore.Qt.Key.Key_Backspace:
                 self.del_digit()
-            elif event.key() == QtCore.Qt.Key.Key_Delete:
+            elif event.key() == QtCore.Qt.Key.Key_F8:
                 if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier:
                     self.window.delete_user()
                 else:
-                    self.clear_input()
-            elif event.key() == QtCore.Qt.Key.Key_F8:
-                self.window.auth_with_password()
+                    self.window.auth_with_password()
+            elif event.key() == QtCore.Qt.Key.Key_Delete:
+                self.clear_input()
+
             elif event.key() == QtCore.Qt.Key.Key_Return:
                 self.window.auth_with_pin()
 
@@ -405,7 +406,7 @@ class MainWidget(QWidget, MainWidgetUi):
             return
         headers = ['Description', 'Username', 'Password']
         trans_data = [list(d[1].values()) for d in data] if data else []
-
+        self.table_model.beginResetModel()
         self.internal_id = {j[1]['name'] + '-cocoa-' + j[1]['username']: j[0] for j in data}  # внутренний id
         self.table_model._headers = headers
         self.table_model._rows = trans_data
