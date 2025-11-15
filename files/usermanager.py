@@ -2,7 +2,7 @@ import json
 import sqlite3
 
 from crypto import CryptographySystem
-
+from config import DATABASE_NAME
 
 class UserManagementSystem:
     """Класс менеджера учетных данных
@@ -52,7 +52,7 @@ class UserManagementSystem:
 
         """
 
-    def __init__(self, db_path='userdata.db'):
+    def __init__(self, db_path=DATABASE_NAME):
         self.db_path = db_path
         self.crypto = CryptographySystem()
         self.init_database()
@@ -66,8 +66,7 @@ class UserManagementSystem:
         username              TEXT    UNIQUE
                                       NOT NULL
                                       ON CONFLICT ROLLBACK,
-        state                 TEXT    DEFAULT OK
-                                      NOT NULL,
+        image                 BLOB            ,
         master_key_passw      BLOB    NOT NULL,
         master_key_passw_salt BLOB    NOT NULL,
         master_key_pin        BLOB    NOT NULL,
@@ -87,17 +86,24 @@ class UserManagementSystem:
         except Exception:
             pass
 
-    def register_user(self, username, password, pin):  # регистрируем пользователя
+    def register_user(self, username, password, pin, image=None):  # регистрируем пользователя
         userdata = self.crypto.derive_userdata(password=password, pin=pin)
         # passw_key, passw_key_salt, pin_key, pin_key_salt = userdata
         try:
             con = sqlite3.connect(self.db_path)
             cur = con.cursor()
-            cur.execute(
-                '''INSERT INTO users 
-                (username, master_key_passw, master_key_passw_salt, master_key_pin, master_key_pin_salt) 
-                VALUES (?,?,?,?,?)''',
-                (username, *userdata))
+            if image:
+                cur.execute(
+                    '''INSERT INTO users 
+                    (username, image, master_key_passw, master_key_passw_salt, master_key_pin, master_key_pin_salt) 
+                    VALUES (?,?,?,?,?,?)''',
+                    (username, image, *userdata))
+            else:
+                cur.execute(
+                    '''INSERT INTO users 
+                    (username, master_key_passw, master_key_passw_salt, master_key_pin, master_key_pin_salt) 
+                    VALUES (?,?,?,?,?)''',
+                    (username, *userdata))
             con.commit()
             con.close()
         except sqlite3.IntegrityError as e:
@@ -141,32 +147,31 @@ class UserManagementSystem:
     def get_users_list(self):  # вернуть список пользователей
         con = sqlite3.connect(self.db_path)
         cur = con.cursor()
-        cur.execute('''SELECT username from users''')
+        cur.execute('''SELECT username, image FROM users''')
         users = cur.fetchall()
         return users
 
     def write_user_data(self, username, master_key, data):  # запись пользовательских данных
         con = sqlite3.connect(self.db_path)
         cur = con.cursor()
-        encr_data = self.crypto.encrypt_data(json.dumps(data).encode(), master_key)
+        encr_data = [(self.crypto.encrypt_data(json.dumps(datum).encode(), master_key),) for datum in data]
         try:
-            cur.execute(
-                '''INSERT INTO data (user_id, encrypted_data) VALUES((SELECT id from users where username = ?),?)''',
-                (username, encr_data))
+            cur.executemany(
+                F'''INSERT INTO data (user_id, encrypted_data) VALUES((SELECT id FROM users WHERE username = '{username}'),?)''',
+                encr_data)
             con.commit()
             con.close()
         except Exception:
-            return False, 'Unknown error'
+            return False, 'SQL error, try again'
         else:
             return True, 'Data successfully added'
 
     def read_user_data(self, username, master_key):  # чтение пользовательских данных
         con = sqlite3.connect(self.db_path)
         cur = con.cursor()
-        # user_id = self.get_user_id_from_username(username)
         try:
             cur.execute(
-                '''SELECT id, encrypted_data FROM data WHERE user_id = (SELECT id from users where username = ?)''',
+                '''SELECT id, encrypted_data FROM data WHERE user_id = (SELECT id FROM users WHERE username = ?)''',
                 (username,))
             encr_data = cur.fetchall()
         except Exception as e:
@@ -207,7 +212,7 @@ class UserManagementSystem:
         else:
             return True, f'User {username} successfully deleted'
 
-# um = UserManagementSystem()
+um = UserManagementSystem()
 # # # # print(um.register_user('kodex', 'c1ff2g3', '4108'))
 # # # print(um.register_user('user1', '88112233', '412143'))
 # # # print(*um.get_users_list())
@@ -218,3 +223,4 @@ class UserManagementSystem:
 # print(um.write_user_data('tu1', mkey, userdata1))
 # print(um.write_user_data('tu1', mkey, userdata2))
 # print(um.read_user_data('tu1', mkey))
+print(um.delete_user('tu1'))

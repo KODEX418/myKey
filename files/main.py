@@ -1,7 +1,7 @@
 import sys
 
 from PyQt6 import QtCore
-from PyQt6.QtGui import QFontDatabase
+from PyQt6.QtGui import QFontDatabase, QPixmap
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
 from usermanager import UserManagementSystem
@@ -9,7 +9,7 @@ from widgets import GreetWidget, UserCreation, MainWidget, PasswordCreation, Pas
 
 
 class MainWindow(QMainWindow):
-    '''Класс основного окна
+    '''Класс родительского окна
 
     -----------------------------------------------------------------------------------------------------------------
 
@@ -46,9 +46,11 @@ class MainWindow(QMainWindow):
     auth_with_password()
         Вход с паролем
 
-    TODO:: реализовать блокировку входа по ПИН-коду после нескольких неудачных попыток
-        (удалить мастер-ключ от ПИН-кода безвозвратно, после входа заставить придумать новый PIN и записать в БД)
+    set_current_session()
+        Создает сессию пользователя
 
+    isLogged()
+        Возвращает статус
     '''
 
     def __init__(self):
@@ -63,7 +65,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('myKey')
 
         self.usermanager = UserManagementSystem()
-
+        self.users_avatars = None
         self.isLoggedState = False
         self.user_session = None
         self.widget_stack = QStackedWidget()
@@ -88,12 +90,24 @@ class MainWindow(QMainWindow):
         self.isLoggedState = True
 
     def update_user_list(self):  # обновить список
+        self.users_avatars = dict()
         self.greet_widget.user_comboBox.clear()
+        names = []
         for user in self.usermanager.get_users_list():
-            self.greet_widget.user_comboBox.addItem(user[0])
+            names.append(user[0])
+            if user[1]:
+                pixmap = QPixmap()
+                pixmap.loadFromData(user[1])
+                self.users_avatars[user[0]] = pixmap
+            else:
+                self.users_avatars[user[0]] = None
+        self.greet_widget.user_comboBox.addItems(names)
+        self.greet_widget.user_comboBox.setCurrentIndex(0)
+        self.greet_widget.set_picture()
+
 
     def create_main_widget(self):  # создать главный виджет
-        self.main_widget = MainWidget(self, self.usermanager)
+        self.main_widget = MainWidget(self)
         self.widget_stack.addWidget(self.main_widget)
 
     def get_entered_passw(self):  # вернуть пароль
@@ -101,15 +115,14 @@ class MainWindow(QMainWindow):
 
     def open_user_creation_window(self):  # открыть меню создания пользователя
         if not self.isLogged():
-            creation_window = UserCreation(self, usermanager=self.usermanager)
+            creation_window = UserCreation(self)
             creation_window.exec()
             self.update_user_list()
 
     def open_password_creation_window(self):
         if self.isLogged():
-            creation_window = PasswordCreation(self, self.usermanager, self.main_widget)
+            creation_window = PasswordCreation(self)
             creation_window.exec()
-            self.main_widget.show_info_message('Data successfully added')
             self.main_widget.show_data()
 
     def mousePressEvent(self, ev):
@@ -128,7 +141,7 @@ class MainWindow(QMainWindow):
         if not self.isLogged():
             current_user = self.greet_widget.user_comboBox.currentText()
             pin = self.get_entered_passw()
-            if (current_user,) in self.usermanager.get_users_list():
+            if current_user in [k[0] for k in self.usermanager.get_users_list()]:
                 result = self.usermanager.get_master_key_with_pin(current_user, pin)
                 if result[0]:
                     self.set_current_session(current_user, result[1])
@@ -139,12 +152,13 @@ class MainWindow(QMainWindow):
                     self.greet_widget.label.setText(result[1])
                     self.greet_widget.clear_input()
 
-    def auth_with_password(self):  # войти по паролю (DEL)
+    def auth_with_password(self):  # войти по паролю (F8)
         if not self.isLogged():
             current_user = self.greet_widget.user_comboBox.currentText()
-            passw_auth = PasswordAuth(self, self.usermanager, current_user, 'Enter your password to log in')
+            passw_auth = PasswordAuth(self, current_user, 'Enter your password to log in')
             passw_auth.exec()
-            if (current_user,) in self.usermanager.get_users_list() and self.isLogged() and self.get_user_session():
+            if current_user in [k[0] for k in
+                                self.usermanager.get_users_list()] and self.isLogged() and self.get_user_session():
 
                 self.main_widget.username_label.setText(current_user)
                 self.main_widget.create_user_session(self.get_user_session())
@@ -164,17 +178,19 @@ class MainWindow(QMainWindow):
             self.isLoggedState = False
             self.user_session = None
 
-    def delete_user(self): # удаление пользователя (CTRL+F8)
+    def delete_user(self):  # удаление пользователя (CTRL+DEL)
         if not self.isLogged():
             current_user = self.greet_widget.user_comboBox.currentText()
-            passw_auth = PasswordAuth(self, self.usermanager, current_user, f"Confirm deletion of User: {current_user}")
+            passw_auth = PasswordAuth(self, current_user, f"Confirm deletion of User: {current_user}")
             passw_auth.exec()
-            if (current_user,) in self.usermanager.get_users_list() and self.isLogged() and self.get_user_session():
+            if current_user in [k[0] for k in self.usermanager.get_users_list()] and self.isLogged() and self.get_user_session():
                 result = self.usermanager.delete_user(current_user)
                 if result[0]:
                     self.greet_widget.label.setText(result[1])
                     self.greet_widget.clear_input()
                     self.update_user_list()
+                    self.greet_widget.user_picture.clear()
+                    self.greet_widget.set_picture()
             else:
                 self.greet_widget.label.setText('Password authentication failed.')
                 self.greet_widget.clear_input()
@@ -188,6 +204,11 @@ def except_hook(cls, exception, traceback):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+        app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+    if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+        app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
     ex = MainWindow()
     sys.excepthook = except_hook
     ex.show()

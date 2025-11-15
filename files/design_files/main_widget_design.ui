@@ -111,10 +111,113 @@ font-weight: 700;
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);
-border-top-right-radius:0px;
-border-top-left-radius:0px;
-</string>
+     <string notr="true">QFrame
+{
+        border: 1px solid rgb(216, 216, 216);
+        border-radius: 0px;
+		border-top: 0px;
+        padding: 0px;
+		background-color: rgb(255, 255, 255);
+		border-top-right-radius:0px;
+		border-top-left-radius:0px;
+
+ }
+QScrollBar:vertical {
+        border: 2px solid  white;
+        background: rgba(255, 255, 255);
+        width: 14px;
+        margin:  5px 0px 5px 0px;
+		border-radius:10px;
+		
+    }
+    QScrollBar::handle:vertical {
+        background-color: rgba(190, 249, 255,100);
+		border-radius:3px;
+        min-height: 75px;
+    }
+	QScrollBar::handle:vertical:hover {
+    background-color: rgba(190, 249, 255,175);
+}
+
+QScrollBar::handle:vertical:pressed {
+    background-color: rgba(190, 249, 255,255);
+}
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+        border: none;
+        background:rgb(255, 255, 255);
+        subcontrol-origin: margin;
+        height: 6px;
+		border-radius:10px;
+    }
+QScrollBar::add-line:vertical {
+        subcontrol-position: bottom;
+    }
+    QScrollBar::sub-line:vertical {
+        subcontrol-position: top;
+    }
+    QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+        border: 0px;
+        width: 0px;
+        height: 0px;
+    }
+QScrollBar::up-arrow:vertical {
+        top: 10px;
+        border-bottom-color: white;
+    }
+    QScrollBar::down-arrow:vertical {
+        bottom: 10px;
+        border-top-color: white;
+
+    }
+QScrollBar:horizontal {
+    border: 2px solid white;
+    background: rgba(255, 255, 255);
+    height: 15px;
+    margin: 0px 5px 0px 5px;
+    border-radius: 10px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: rgba(190, 249, 255, 100);
+    border-radius: 3px;
+    min-width: 75px;
+}
+
+	QScrollBar::handle:horizontal:hover {
+    background-color: rgba(190, 249, 255,175);
+}
+
+QScrollBar::handle:horizontal:pressed {
+    background-color: rgba(190, 249, 255,255);
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    border: none;
+    background: rgb(255, 255, 255);
+    subcontrol-origin: margin;
+    width: 6px;
+    border-radius: 10px;
+}
+
+QScrollBar::add-line:horizontal {
+    subcontrol-position: right;
+}
+
+QScrollBar::sub-line:horizontal {
+    subcontrol-position: left;
+}
+
+QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+    border: 0px;
+    width: 0px;
+    height: 0px;
+}</string>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAsNeeded</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAsNeeded</enum>
     </property>
    </widget>
    <widget class="QLabel" name="username_label">

@@ -287,17 +287,17 @@ class Ui_Form(object):
 "                border-radius: 0;\n"
 "            }")
         self.user_comboBox.setObjectName("user_comboBox")
-        self.label_2 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_2.setGeometry(QtCore.QRect(110, 90, 64, 64))
+        self.user_picture = QtWidgets.QLabel(parent=self.main_frame)
+        self.user_picture.setGeometry(QtCore.QRect(110, 90, 64, 64))
         font = QtGui.QFont()
         font.setFamily("Bahnschrift Light")
         font.setPointSize(22)
-        self.label_2.setFont(font)
-        self.label_2.setStyleSheet("background-color: rgb(0, 255, 127);\n"
+        self.user_picture.setFont(font)
+        self.user_picture.setStyleSheet("background-color: rgb(0, 255, 127);\n"
 "border-radius:32px;")
-        self.label_2.setText("")
-        self.label_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_2.setObjectName("label_2")
+        self.user_picture.setText("")
+        self.user_picture.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.user_picture.setObjectName("user_picture")
         self.passw_lineEdit = QtWidgets.QLineEdit(parent=self.main_frame)
         self.passw_lineEdit.setGeometry(QtCore.QRect(0, 220, 471, 20))
         font = QtGui.QFont()
@@ -322,7 +322,7 @@ class Ui_Form(object):
         self.pushButton_del.raise_()
         self.label.raise_()
         self.user_comboBox.raise_()
-        self.label_2.raise_()
+        self.user_picture.raise_()
         self.passw_lineEdit.raise_()
         self.add_userButton.raise_()
 

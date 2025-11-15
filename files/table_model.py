@@ -37,7 +37,7 @@ class TableModel(QAbstractTableModel):
             return f"Password: {self._rows[index.row()][index.column()]}"
         elif role == Qt.ItemDataRole.FontRole:
             font = QFont()
-            font.setPointSize(12)
+            font.setPointSize(11)
             font.setFamily("Bahnschrift Light")
             return font
         return QVariant()
@@ -61,18 +61,3 @@ class TableModel(QAbstractTableModel):
             self.dataChanged.emit(index, index, [role])
             return True
         return False
-
-    # Вставка/удаление строк (на будущее)
-    def insertRows(self, row, count, parent=None):
-        self.beginInsertRows(parent or QModelIndex(), row, row + count - 1)
-        for _ in range(count):
-            self._rows.insert(row, [""] * len(self._headers))
-        self.endInsertRows()
-        return True
-
-    def removeRows(self, row, count, parent=None):
-        self.beginRemoveRows(parent or QModelIndex(), row, row + count - 1)
-        for _ in range(count):
-            self._rows.pop(row)
-        self.endRemoveRows()
-        return True
